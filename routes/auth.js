@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/register", async (req, res) => {
     try {
-        const { firstName, lastName, email, password } = req.body;
+        const { firstName, lastName, email, password, role } = req.body;
         if (!(email && password && firstName && lastName)) {
             return res.status(400).send("All input is required");
         }
@@ -24,11 +24,12 @@ router.post("/register", async (req, res) => {
             last_name: lastName,
             email: email.toLowerCase(),
             password: encryptedUserPassword,
+            role: role || 'User',
         });
 
         const token = jwt.sign(
             { user_id: user._id, email },
-            'RANDOM', 
+            'RANDOM',
             { expiresIn: "5h" }
         );
 
@@ -43,7 +44,7 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         if (!(email && password)) {
             return res.status(400).send("All input is required");
@@ -54,7 +55,7 @@ router.post("/login", async (req, res) => {
         if (user && (await bcrypt.compare(password, user.password))) {
             const token = jwt.sign(
                 { user_id: user._id, email },
-                'RANDOM', 
+                'RANDOM',
                 { expiresIn: "5h" }
             );
 

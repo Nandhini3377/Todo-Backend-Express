@@ -1,13 +1,14 @@
 import express from 'express';
 import Todo from '../models/todo.js';
 import validateTodo from '../middleware/validators/todo.js';
-
+import authenticate from '../middleware/auth.js';
+import authorize from '../middleware/authorize.js';
 const router = express.Router();
 
 // Fetch all todos
-router.get('/all', async (req, res) => {
+router.get('/all',authenticate,authorize(['Admin']), async (req, res) => {
     try {
-        const todos = await Todo.find(); // Fetch all todos
+        const todos = await Todo.find();
         res.status(200).json(todos);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching todos', error: err.message });
@@ -15,9 +16,9 @@ router.get('/all', async (req, res) => {
 });
 
 // Fetch only pending todos
-router.get('/pending', async (req, res) => {
+router.get('/pending',authenticate, async (req, res) => {
     try {
-        const pendingTodos = await Todo.find({ status: 'pending' }); // Fetch todos with status 'pending'
+        const pendingTodos = await Todo.find({ status: 'pending' }); 
         res.status(200).json(pendingTodos);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching pending todos', error: err.message });
@@ -80,7 +81,7 @@ router.patch('/:id/status', async (req, res) => {
 });
 
 // Delete a todo
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',authenticate,authorize(['Admin']), async (req, res) => {
     try {
         const deletedTodo = await Todo.findByIdAndDelete(req.params.id);
         if (!deletedTodo) return res.status(404).json({ message: 'Todo not found' });
